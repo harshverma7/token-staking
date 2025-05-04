@@ -6,18 +6,45 @@ import "forge-std/Test.sol";
 import "src/Contract.sol";
 
 contract TestContract is Test {
-    Contract c;
+    StakingContract c;
 
     function setUp() public {
-        c = new Contract();
+        c = new StakingContract();
     }
 
-    function testBar() public {
-        assertEq(uint256(1), uint256(1), "ok");
+    fallback() external payable {}
+
+    receive() external payable {}
+
+
+    function testStake() public {
+        uint value = 10 ether;
+        c.stake{value: value}(value);
+        assert(c.totalStake() == value);
     }
 
-    function testFoo(uint256 x) public {
-        vm.assume(x < type(uint128).max);
-        assertEq(x + x, x * 2);
+    function testUnstake() public {
+        uint value = 10 ether;
+        c.stake{value: value}(value);
+         assert(c.totalStake() == value);
+        c.unstake(value);
+        assert(c.totalStake() == 0);
+
     }
+
+     function test_RevertWhen_StakeFails() public {
+        uint value = 10 ether;
+        vm.expectRevert();
+
+        c.stake(value);
+    }
+
+    function test_RevertWhen_UnstakeFails() public{
+        uint value = 10 ether;
+         c.stake{value: value}(value);
+         vm.expectRevert();
+         c.unstake(value*2);     
+    }
+
+
 }
